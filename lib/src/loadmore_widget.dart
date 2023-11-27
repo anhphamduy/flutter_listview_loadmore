@@ -85,7 +85,8 @@ class _LoadMoreState extends State<LoadMore> {
   }
 
   ValueNotifier<LoadMoreStatus> _loadMoreStatus =
-      ValueNotifier(LoadMoreStatus.idle);
+  ValueNotifier(LoadMoreStatus.idle);
+
   LoadMoreStatus get status => _loadMoreStatus.value;
 
   /// if call the method, then the future is not null
@@ -95,7 +96,7 @@ class _LoadMoreState extends State<LoadMore> {
     outer:
     if (delegate is SliverChildBuilderDelegate) {
       SliverChildBuilderDelegate delegate =
-          listView.childrenDelegate as SliverChildBuilderDelegate;
+      listView.childrenDelegate as SliverChildBuilderDelegate;
       if (!widget.whenEmptyLoad && delegate.estimatedChildCount == 0) {
         break outer;
       }
@@ -128,7 +129,7 @@ class _LoadMoreState extends State<LoadMore> {
       );
     } else if (delegate is SliverChildListDelegate) {
       SliverChildListDelegate delegate =
-          listView.childrenDelegate as SliverChildListDelegate;
+      listView.childrenDelegate as SliverChildListDelegate;
 
       if (!widget.whenEmptyLoad && delegate.estimatedChildCount == 0) {
         break outer;
@@ -238,6 +239,9 @@ class _LoadMoreState extends State<LoadMore> {
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
+    if (status == LoadMoreStatus.loading) {
+      return false;
+    }
     final widgetHeight = loadMoreDelegate.widgetHeight(status);
     // 当底部剩余高度小于 widgetHeight 时，触发加载更多
     if (notification.metrics.extentAfter < widgetHeight) {
@@ -373,14 +377,15 @@ class DefaultLoadMoreViewState extends State<DefaultLoadMoreView> {
           }
         }
       },
-      child: Container(
+      child: (widget.status == LoadMoreStatus.loading ||
+          widget.status == LoadMoreStatus.fail) ? Container(
         height: delegate.widgetHeight(widget.status),
         alignment: Alignment.center,
         child: delegate.buildChild(
           widget.status,
           builder: widget.textBuilder,
         ),
-      ),
+      ) : Container(),
     );
   }
 
@@ -421,8 +426,7 @@ abstract class LoadMoreDelegate {
   /// build loadmore delay
   Duration loadMoreDelay() => Duration(milliseconds: _loadMoreDelay);
 
-  Widget buildChild(
-    LoadMoreStatus status, {
+  Widget buildChild(LoadMoreStatus status, {
     LoadMoreTextBuilder builder = DefaultLoadMoreTextBuilder.chinese,
   });
 }
